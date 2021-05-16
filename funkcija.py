@@ -17,7 +17,7 @@ class funkcija(object):
         self.recived = ['varijabla1', 'varijabla2', 'varijabla3']
         while not rospy.is_shutdown():
             print(self.recived, varijable)
-            if set(self.recived) >= set(varijable):
+            if True:#set(self.recived) >= set(varijable):
                 self.recived.clear()
                 for i in self.pubs:
                     poruka = poruka_varijabli()
