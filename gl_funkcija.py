@@ -27,9 +27,9 @@ class main_hub(object):
             'varijabla3, funkcija2': [0, 0], 'varijabla3, funkcija3': [0, 0]
             }
         self.received = {
-            'varijabla1' : [],
-            'varijabla2' : [],
-            'varijabla3' : []
+            'varijabla1' : ['funkcija1', 'funkcija2'],
+            'varijabla2' : ['funkcija1', 'funkcija2', 'funkcija3'],
+            'varijabla3' : ['funkcija2', 'funkcija3']
             }
 
         rospy.Subscriber('/varijabla_funkciji', poruka, self.callback, queue_size=1)
@@ -39,16 +39,14 @@ class main_hub(object):
             self.pubs[varijabla] = rospy.Publisher('/{}/funkcija_varijabli'.format(varijabla), poruka, queue_size=1)
         
         for varijabla in self.pubs:
-            while self.pubs[varijabla].get_num_connections() < 1:
-                print(self.pubs[varijabla].get_num_connections())
-                pass
+            rospy.sleep(2)
 
         while not rospy.is_shutdown():
-            check = []
-            for varijabla in self.received:
-                if set(self.M[varijabla]) <= set(self.received[varijabla]):
-                    check.append(True)
-            if all(check) and len(check) != 0:
+            # check = []
+            # for varijabla in self.received:
+            #     if set(self.M[varijabla]) <= set(self.received[varijabla]):
+            #         check.append(True)
+            if True: #all(check) and len(check) != 0:
                 for funkcija in self.gamma:
                     varijable_kojima_saljemo = self.N[funkcija]
                     for varijabla in varijable_kojima_saljemo:
@@ -57,7 +55,7 @@ class main_hub(object):
                         msg.primatelj = varijabla
                         msg.posiljatelj = funkcija
                         self.pubs[varijabla].publish(msg)
-                        self.received[varijabla] = 0
+                        self.received[varijabla].clear()
 
     def calc_U(self, f):
         xor_sum = []
@@ -68,6 +66,9 @@ class main_hub(object):
         i1 = 0
         i2 = 0
         i3 = 0
+        temp = list(self.N.keys())
+        m_num = temp.index(f) + 1
+        m = 'varijabla{}'.format(m_num)
         while i1 != pow(2, len(N)):            
             xor_sum.append(0) ## stvaranje liste [0..0] velicine 2^len(N)
             temp = [1 if i1 & (1 << (7-n)) else 0 for n in range(8)] ##varijabla u koju spremam binarni oblik countera i
@@ -79,12 +80,12 @@ class main_hub(object):
         while i2 != pow(2, len(N)):
             temp = bits[i2]
             for j in N:
-                if j != f:
-                    xor_sum[i2] += self.calc_XOR(temp[N.index(j)], temp[N.index(f)]) ##racunanje svih xorova za kombinacije varijabli 
+                if j != m:
+                    xor_sum[i2] += self.calc_XOR(temp[N.index(j)], temp[N.index(m)]) ##racunanje svih xorova za kombinacije varijabli 
             i2 += 1
         while i3 != pow(2, len(N)):
             temp = bits[i3]
-            if temp[N.index(f)] == 0:
+            if temp[N.index(m)] == 0:
                 U.append(gamma[0] - xor_sum[i3])
             else:
                 U.append(gamma[1] - xor_sum[i3])
